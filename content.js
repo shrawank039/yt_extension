@@ -11,66 +11,82 @@ function fillInput(selector, text) {
   const element = document.querySelector(selector);
   if (element) {
     element.value = text;
+    const event = new Event('input', { bubbles: true });
+    element.dispatchEvent(event);  // Ensure the input event is dispatched
   } else {
     console.error(`Element not found: ${selector}`);
   }
 }
 
-function clickHistoryButton() {
-  // First, try to find the element by its href attribute
-  let historyButton = document.querySelector('a[href="/feed/history"]');
+function clickThumbnail() {
+  // Target the video title link, which is the clickable element for a video
+  const videoLink = document.querySelector('a#video-title.yt-simple-endpoint.style-scope.ytd-video-renderer');
   
-  // If not found, try to find it by its title attribute
-  if (!historyButton) {
-    historyButton = document.querySelector('a[title="History"]');
-  }
-  
-  // If still not found, try to find it by its text content
-  if (!historyButton) {
-    historyButton = Array.from(document.querySelectorAll('a')).find(el => 
-      el.textContent.trim() === 'History'
-    );
-  }
-
-  // If the button is found, click it
-  if (historyButton) {
-    historyButton.click();
-    console.log('History button clicked');
+  if (videoLink) {
+    videoLink.click(); // Click the video link
+    console.log('Clicked on video:', videoLink.textContent.trim());
   } else {
-    console.error('History button not found');
+    console.error('No video link found');
   }
 }
 
-function parseInstructions(instructions) {
-  // This is a simple parser. You'll need to expand this based on your needs.
-  
-  const actions = instructions.split(';').map(action => action.trim());
-  actions.forEach(action => {
-    const [command, ...params] = action.split(' ');
+
+function executeInstructions(instructions) {
+  function executeNext(index) {
+    if (index >= instructions.length) return;
+
+    const { command, params } = instructions[index];
+
     switch (command) {
       case 'click':
-        //clickElement(params.join(' '));
-        clickHistoryButton();
+        clickElement(params[0]);
+        // Wait for 5 seconds after clicking search before proceeding
+        setTimeout(() => {
+          clickThumbnail();
+          // Wait for 10 seconds after clicking thumbnail before proceeding
+          setTimeout(() => {
+            executeNext(index + 1);
+          }, 10000); // 10 seconds wait time
+        }, 5000); // 5 seconds wait time
         break;
       case 'fill':
-        fillInput(params[0], params.slice(1).join(' '));
+        fillInput(params[0], params[1]);
+        executeNext(index + 1);
         break;
       default:
         console.error(`Unknown command: ${command}`);
+        executeNext(index + 1);
     }
-  });
+  }
+
+  executeNext(0);
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "execute") {
-    parseInstructions(request.instructions);
+      const instructions = [
+  { command: 'fill', params: ['#search.ytd-searchbox', 'Tom and Jerry'] },
+  { command: 'click', params: ['#search-icon-legacy'] },
+  { command: 'fill', params: ['#search.ytd-searchbox', 'Mickey Mouse Clubhouse'] },
+  { command: 'click', params: ['#search-icon-legacy'] },
+  { command: 'fill', params: ['#search.ytd-searchbox', 'Paw Patrol'] },
+  { command: 'click', params: ['#search-icon-legacy'] },
+];
+
+    executeInstructions(instructions);
+    sendResponse({ status: "Instructions execution started" });
   }
 });
 
-/*
-// click #loginButton; fill #username johndoe; fill #password secretpass; click .submitBtn
-
-1. fill #fill #search.ytd-searchbox text
-2. click #search-icon-legacy
-
- */
+// // Example usage from content script or background script
+// chrome.runtime.sendMessage({
+//   action: "execute",
+//   instructions: [
+//     { command: 'fill', params: ['#search.ytd-searchbox', 'song'] },
+//     { command: 'click', params: ['#search-icon-legacy'] },
+//     { command: 'fill', params: ['#search.ytd-searchbox', 'home'] },
+//     { command: 'click', params: ['#search-icon-legacy'] },
+//   ]
+// }, response => {
+//   console.log(response.status);
+// });
