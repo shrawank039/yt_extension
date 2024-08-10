@@ -64,29 +64,8 @@ function executeInstructions(instructions) {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "execute") {
-      const instructions = [
-  { command: 'fill', params: ['#search.ytd-searchbox', 'Tom and Jerry'] },
-  { command: 'click', params: ['#search-icon-legacy'] },
-  { command: 'fill', params: ['#search.ytd-searchbox', 'Mickey Mouse Clubhouse'] },
-  { command: 'click', params: ['#search-icon-legacy'] },
-  { command: 'fill', params: ['#search.ytd-searchbox', 'Paw Patrol'] },
-  { command: 'click', params: ['#search-icon-legacy'] },
-];
-
-    executeInstructions(instructions);
+    executeInstructions(request.instructions);
     sendResponse({ status: "Instructions execution started" });
   }
 });
 
-// // Example usage from content script or background script
-// chrome.runtime.sendMessage({
-//   action: "execute",
-//   instructions: [
-//     { command: 'fill', params: ['#search.ytd-searchbox', 'song'] },
-//     { command: 'click', params: ['#search-icon-legacy'] },
-//     { command: 'fill', params: ['#search.ytd-searchbox', 'home'] },
-//     { command: 'click', params: ['#search-icon-legacy'] },
-//   ]
-// }, response => {
-//   console.log(response.status);
-// });

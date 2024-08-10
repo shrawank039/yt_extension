@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Web Automation Extension",
+  "name": "YT Recommendation Bot",
   "version": "1.0",
-  "description": "Automate web interactions based on instructions",
+  "description": "Build your Youtube recommendation more precise.",
   "permissions": ["activeTab", "scripting"],
   "action": {
     "default_popup": "popup.html"
